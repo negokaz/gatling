@@ -18,10 +18,10 @@ package io.gatling.recorder.scenario.template
 import io.gatling.commons.util.StringHelper.EmptyFastring
 import io.gatling.http.util.HttpHelper.OkCodes
 import io.gatling.recorder.config.RecorderConfiguration
-import io.gatling.recorder.scenario.{ RequestBodyBytes, RequestBodyParams }
-import io.gatling.recorder.scenario.{ RequestElement, ScenarioExporter }
-
+import io.gatling.recorder.scenario.{RequestBodyBytes, RequestBodyParams}
+import io.gatling.recorder.scenario.{RequestElement, ScenarioExporter}
 import com.dongxiguo.fastring.Fastring.Implicits._
+import org.asynchttpclient.uri.Uri
 
 private[scenario] object RequestTemplate {
 
@@ -96,7 +96,7 @@ private[scenario] object RequestTemplate {
       else
         EmptyFastring
 
-    fast"""http("request_${request.id}")
+    fast"""http("${request.id.leftPad(4, '0')}_${request.method}_${Uri.create(request.uri).getPath}")
 			.$renderMethod$renderHeaders$renderBodyOrParams$renderCredentials$renderResources$renderStatusCheck$renderResponseBodyCheck"""
   }
 

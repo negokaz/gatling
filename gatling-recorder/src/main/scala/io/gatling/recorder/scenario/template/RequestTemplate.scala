@@ -93,7 +93,7 @@ private[scenario] object RequestTemplate {
       else
         EmptyFastring
 
-    fast"""http("${request.id.leftPad(4, '0')}_${request.method}_${Uri.create(request.uri).getPath}")
+    fast"""http("${request.method}_${Uri.create(request.uri).getPath}")
 			.$renderMethod$renderHeaders$renderBodyOrParams$renderCredentials$renderResources$renderStatusCheck$renderResponseBodyCheck"""
   }
 

@@ -85,7 +85,7 @@ $mapContent)"""
                 }
                 fast"$prefix${renderScenarioElement(element, extractedUris)}"
               }.mkFastring("\n\t\t")
-              fast"val chain_$i = $chainContent"
+              fast"def chain_$i = $chainContent"
           }.mkFastring("\n\n")
 
           val chainsList = (for (i <- 0 until chains.size) yield fast"chain_$i").mkFastring(", ")

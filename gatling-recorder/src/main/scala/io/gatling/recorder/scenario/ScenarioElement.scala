@@ -52,10 +52,7 @@ private[recorder] object RequestElement {
 
   val CacheHeaders = Set(CacheControl, IfMatch, IfModifiedSince, IfNoneMatch, IfRange, IfUnmodifiedSince)
 
-  val externalUrl = System.getenv("EXTERNAL_URL")
-
-  def apply(_request: SafeHttpRequest, response: SafeHttpResponse)(implicit configuration: RecorderConfiguration): RequestElement = {
-    val request = _request.copy(uri = externalUrl + _request.uri)
+  def apply(request: SafeHttpRequest, response: SafeHttpResponse)(implicit configuration: RecorderConfiguration): RequestElement = {
     val requestHeaders: Map[String, String] = request.headers.entries.asScala.map { entry => (entry.getKey, entry.getValue) }(breakOut)
     val requestContentType = requestHeaders.get(ContentType)
     val requestUserAgent = requestHeaders.get(UserAgent)

@@ -34,6 +34,8 @@ private[user] abstract class UserHandler(proxy: HttpProxy) extends ChannelInboun
 
   @volatile var _remoteChannel: Option[Channel] = None
 
+  val externalUrl = System.getenv("EXTERNAL_URL")
+
   override def channelRead(ctx: ChannelHandlerContext, msg: AnyRef): Unit =
     msg match {
       case request: FullHttpRequest =>
@@ -57,7 +59,7 @@ private[user] abstract class UserHandler(proxy: HttpProxy) extends ChannelInboun
 
         val safeRequest = SafeHttpRequest.fromNettyRequest(request)
 
-        propagateRequest(ctx.channel, safeRequest)
+        propagateRequest(ctx.channel, safeRequest.copy(uri = externalUrl + safeRequest.uri))
 
         proxy.controller.receiveRequest(safeRequest)
 

@@ -18,8 +18,8 @@ package io.gatling.recorder.scenario.template
 import io.gatling.commons.util.StringHelper.EmptyFastring
 import io.gatling.http.util.HttpHelper.OkCodes
 import io.gatling.recorder.config.RecorderConfiguration
-import io.gatling.recorder.scenario.{RequestBodyBytes, RequestBodyParams}
-import io.gatling.recorder.scenario.{RequestElement, ScenarioExporter}
+import io.gatling.recorder.scenario.{ RequestBodyBytes, RequestBodyParams }
+import io.gatling.recorder.scenario.{ RequestElement, ScenarioExporter }
 import com.dongxiguo.fastring.Fastring.Implicits._
 import org.asynchttpclient.uri.Uri
 
@@ -71,11 +71,8 @@ private[scenario] object RequestTemplate {
     }.getOrElse("")
 
     def renderStatusCheck: Fastring =
-      if (!OkCodes.contains(request.statusCode))
-        fast"""
+      fast"""
 			.check(status.is(${request.statusCode}))"""
-      else
-        EmptyFastring
 
     def renderResponseBodyCheck: Fastring =
       if (request.responseBody.isDefined && config.http.checkResponseBodies)

@@ -189,10 +189,13 @@ private[recorder] object ScenarioExporter extends StrictLogging {
   }
 
   private def getChains(scenarioElements: Seq[ScenarioElement]): Either[Seq[ScenarioElement], List[Seq[ScenarioElement]]] =
-    if (scenarioElements.size > ScenarioExporter.EventsGrouping)
-      Right(scenarioElements.grouped(ScenarioExporter.EventsGrouping).toList)
-    else
-      Left(scenarioElements)
+    Right {
+      val requestElements =
+        scenarioElements.collect {
+          case request: RequestElement => request
+        }.groupBy(_.sessionTrackingId.getOrElse(""))
+      requestElements.values.toList
+    }
 
   private def dumpBody(fileName: String, content: Array[Byte])(implicit config: RecorderConfiguration): Unit = {
     withCloseable((getFolder(config.core.bodiesFolder) / fileName).outputStream) { fw =>

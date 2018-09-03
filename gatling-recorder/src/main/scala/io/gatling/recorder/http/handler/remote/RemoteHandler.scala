@@ -16,6 +16,7 @@
 package io.gatling.recorder.http.handler.remote
 
 import java.net.InetSocketAddress
+import java.util.concurrent.atomic.AtomicInteger
 
 import io.gatling.commons.util.ClockSingleton.nowMillis
 import io.gatling.recorder.controller.RecorderController
@@ -26,12 +27,21 @@ import io.gatling.recorder.http.model.{ SafeHttpRequest, SafeHttpResponse }
 import io.gatling.recorder.http.ssl.{ SslClientContext, SslServerContext }
 
 import com.typesafe.scalalogging.StrictLogging
+import io.gatling.http.HeaderNames
 import io.netty.channel._
 import io.netty.handler.codec.http._
 import io.netty.handler.ssl.SslHandler
 import io.netty.util.concurrent.Future
+import org.asynchttpclient.cookie.Cookie
+
+import scala.collection.JavaConverters._
 
 private[recorder] case class TimedHttpRequest(httpRequest: SafeHttpRequest, sendTime: Long = nowMillis)
+
+private[recorder] object SessionTracking {
+  val COOKIE_NAME = "gs"
+  val currentSessionId = new AtomicInteger(0)
+}
 
 private[handler] class RemoteHandler(
     controller:         RecorderController,
@@ -71,9 +81,19 @@ private[handler] class RemoteHandler(
         throw new UnsupportedOperationException(s"Outgoing proxy refused to connect: ${response.status}")
     }
 
-    def handleResponse(response: SafeHttpResponse): Unit =
+    def handleResponse(_response: SafeHttpResponse): Unit =
       ctx.attr(TimedHttpRequestAttribute).getAndSet(null) match {
         case request: TimedHttpRequest =>
+          val requestWasSessionTracking =
+            if (request.httpRequest.headers.contains(HeaderNames.Cookie)) {
+              val cookieStr = request.httpRequest.headers.get(HeaderNames.Cookie)
+              val cookies = cookie.ServerCookieDecoder.LAX.decode(cookieStr).asScala
+              cookies.exists(_.name == SessionTracking.COOKIE_NAME)
+            } else false
+          val response = if (requestWasSessionTracking)
+            _response
+          else
+            _response.copy(headers = _response.headers.add(HeaderNames.SetCookie, Cookie.newValidCookie( /*name = */ SessionTracking.COOKIE_NAME, /*value = */ SessionTracking.currentSessionId.getAndIncrement().toString, false, null, null, -1L, false, false)))
           controller.receiveResponse(request, response)
 
           if (userChannel.isActive) {

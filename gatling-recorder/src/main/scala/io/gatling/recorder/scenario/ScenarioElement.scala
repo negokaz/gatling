@@ -17,20 +17,23 @@ package io.gatling.recorder.scenario
 
 import java.nio.charset.Charset
 
+import io.gatling.http.HeaderNames
+
 import scala.collection.breakOut
-import scala.collection.JavaConverters._
 import scala.concurrent.duration.FiniteDuration
 import scala.io.Codec.UTF8
-
 import io.gatling.http.HeaderNames._
 import io.gatling.http.HeaderValues._
 import io.gatling.http.fetch.{ EmbeddedResource, HtmlParser }
 import io.gatling.http.util.HttpHelper.parseFormBody
 import io.gatling.recorder.config.RecorderConfiguration
+import io.gatling.recorder.http.handler.remote.SessionTracking
 import io.gatling.recorder.http.model.{ SafeHttpRequest, SafeHttpResponse }
-
+import io.netty.handler.codec.http.cookie.{ ClientCookieDecoder, ServerCookieDecoder }
 import org.asynchttpclient.util.Base64
 import org.asynchttpclient.uri.Uri
+
+import scala.collection.JavaConverters._
 
 private[recorder] case class TimedScenarioElement[+T <: ScenarioElement](sendTime: Long, arrivalTime: Long, element: T)
 
@@ -98,7 +101,22 @@ private[recorder] object RequestElement {
       else
         requestHeaders
 
-    RequestElement(new String(request.uri), request.method.toString, filteredRequestHeaders, requestBody, responseBody, response.status.code, embeddedResources)
+    def extractResponseSessionTrackingId: Option[String] =
+      response.headers.getAll(HeaderNames.SetCookie).asScala
+        .map(ClientCookieDecoder.LAX.decode)
+        .filter(_.name == SessionTracking.COOKIE_NAME)
+        .map(_.value)
+        .headOption
+
+    def extractRequestSessionTrackingId: Option[String] =
+      requestHeaders.get(HeaderNames.Cookie)
+        .map(ServerCookieDecoder.LAX.decode)
+        .flatMap(_.asScala.filter(_.name == SessionTracking.COOKIE_NAME).headOption)
+        .map(_.value)
+
+    val sessionTrackingId = extractResponseSessionTrackingId.orElse(extractRequestSessionTrackingId)
+
+    RequestElement(new String(request.uri), request.method.toString, filteredRequestHeaders, requestBody, responseBody, response.status.code, embeddedResources, sessionTrackingId)
   }
 }
 
@@ -110,6 +128,7 @@ private[recorder] case class RequestElement(
     responseBody:         Option[ResponseBody],
     statusCode:           Int,
     embeddedResources:    List[EmbeddedResource],
+    sessionTrackingId:    Option[String]         = None,
     nonEmbeddedResources: List[RequestElement]   = Nil
 ) extends ScenarioElement {
 

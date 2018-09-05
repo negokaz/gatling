@@ -86,14 +86,16 @@ $mapContent)"""
                 fast"$prefix${renderScenarioElement(element, extractedUris)}"
               }.mkFastring("\n\t\t")
               fast"def session_${chain.find(_.isInstanceOf[RequestElement]).get.asInstanceOf[RequestElement].sessionTrackingId.getOrElse(Int.MaxValue.toString)} = $chainContent"
-          }.mkFastring("\n\n")
+          }.mkFastring("\n\n\t")
 
-          val chainsList = (for (i <- 0 until chains.size) yield fast"session_$i").mkFastring(", ")
+          val chainsList = (for (i <- 0 until chains.size) yield fast"session_$i").mkFastring(",\n\t")
 
           fast"""$chainElements
-					
-	val scn = scenario("$scenarioName").roundRobinSwitch(
-		$chainsList)"""
+
+	val sessions = Seq(
+		$chainsList
+	)
+	val scn = scenario("$scenarioName").roundRobinSwitch(sessions: _*)"""
       }
 
     }
@@ -124,7 +126,7 @@ ${ValuesTemplate.render(nonBaseUrls)}
 
 	${renderScenario(extractedUris)}
 
-	setUp(scn.inject(splitUsers(${scenarioElements.toOption.map(_.size).getOrElse(1)}) into(atOnceUsers(1)) separatedBy(0.seconds))).protocols(httpProtocol)
+	setUp(scn.inject(splitUsers(sessions.size) into(atOnceUsers(1)) separatedBy(0.seconds))).protocols(httpProtocol)
 }""".toString()
   }
 }

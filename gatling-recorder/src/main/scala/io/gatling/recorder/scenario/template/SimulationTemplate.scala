@@ -88,7 +88,7 @@ $mapContent)"""
               fast"def session_${chain.find(_.isInstanceOf[RequestElement]).get.asInstanceOf[RequestElement].sessionTrackingId.getOrElse(Int.MaxValue.toString)} = $chainContent"
           }.mkFastring("\n\n\t")
 
-          val chainsList = (for (i <- 0 until chains.size) yield fast"session_$i").mkFastring(",\n\t")
+          val chainsList = (for (i <- 0 until chains.size) yield fast"session_$i").mkFastring(",\n\t\t")
 
           fast"""$chainElements
 

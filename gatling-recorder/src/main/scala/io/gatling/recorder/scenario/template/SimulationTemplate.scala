@@ -126,7 +126,7 @@ ${ValuesTemplate.render(nonBaseUrls)}
 
 	${renderScenario(extractedUris)}
 
-	setUp(scn.inject(splitUsers(sessions.size) into(atOnceUsers(1)) separatedBy(0.seconds))).protocols(httpProtocol)
+	setUp(scn.inject(splitUsers(sessions.size) into(atOnceUsers(1)) separatedBy(1.millis))).protocols(httpProtocol)
 }""".toString()
   }
 }

@@ -92,7 +92,7 @@ $mapContent)"""
 
           fast"""$chainElements
 					
-	val scn = scenario("$scenarioName").exec(
+	val scn = scenario("$scenarioName").roundRobinSwitch(
 		$chainsList)"""
       }
 
@@ -124,7 +124,7 @@ ${ValuesTemplate.render(nonBaseUrls)}
 
 	${renderScenario(extractedUris)}
 
-	setUp(scn.inject(atOnceUsers(1))).protocols(httpProtocol)
+	setUp(scn.inject(splitUsers(${scenarioElements.toOption.map(_.size).getOrElse(1)}) into(atOnceUsers(1)) separatedBy(0.seconds))).protocols(httpProtocol)
 }""".toString()
   }
 }

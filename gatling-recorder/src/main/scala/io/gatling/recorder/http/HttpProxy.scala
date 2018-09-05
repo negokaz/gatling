@@ -44,7 +44,7 @@ private[recorder] case class HttpProxy(controller: RecorderController)(implicit 
   private val serverWorkerGroup = new NioEventLoopGroup
   private val group = new DefaultChannelGroup("Gatling_Recorder", GlobalEventExecutor.INSTANCE)
 
-  val externalUrl = config.config.getString("proxy.externalUrl")
+  val externalUrl = config.config.getString("recorder.proxy.externalUrl")
 
   val userBootstrap = newUserBootstrap(serverBossGroup, serverWorkerGroup, this, config) // covers both http and https
   group.add(userBootstrap.bind(new InetSocketAddress(config.proxy.port)).sync.channel)

@@ -85,10 +85,10 @@ $mapContent)"""
                 }
                 fast"$prefix${renderScenarioElement(element, extractedUris)}"
               }.mkFastring("\n\t\t")
-              fast"def chain_$i = $chainContent"
+              fast"def session_${chain.find(_.isInstanceOf[RequestElement]).get.asInstanceOf[RequestElement].sessionTrackingId.getOrElse(Int.MaxValue.toString)} = $chainContent"
           }.mkFastring("\n\n")
 
-          val chainsList = (for (i <- 0 until chains.size) yield fast"chain_$i").mkFastring(", ")
+          val chainsList = (for (i <- 0 until chains.size) yield fast"session_$i").mkFastring(", ")
 
           fast"""$chainElements
 					

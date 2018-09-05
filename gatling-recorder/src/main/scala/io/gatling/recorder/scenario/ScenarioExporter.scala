@@ -193,8 +193,8 @@ private[recorder] object ScenarioExporter extends StrictLogging {
       val requestElements =
         scenarioElements.collect {
           case request: RequestElement => request
-        }.groupBy(_.sessionTrackingId.getOrElse(""))
-      requestElements.values.toList
+        }.groupBy(_.sessionTrackingId.getOrElse(Int.MaxValue.toString))
+      requestElements.values.toList.sortBy(_.head.sessionTrackingId.getOrElse(Int.MaxValue.toString).toInt)
     }
 
   private def dumpBody(fileName: String, content: Array[Byte])(implicit config: RecorderConfiguration): Unit = {
